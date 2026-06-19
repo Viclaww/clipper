@@ -49,6 +49,8 @@ def build_ytdlp_cmd(url: str, output: str) -> list:
         "bv[ext=mp4]+ba[ext=m4a]/b[ext=mp4]",
         "--merge-output-format",
         "mp4",
+        "--extractor-args",
+        "youtube:player_client=android",
         "-o",
         output,
     ]
@@ -205,3 +207,19 @@ def compile(req: CompileRequest):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/debug")
+def debug():
+    cookies_env = os.getenv("YT_COOKIES_B64")
+    cookies_file_exists = os.path.exists(COOKIES_FILE)
+    cookies_file_size = os.path.getsize(COOKIES_FILE) if cookies_file_exists else 0
+    return {
+        "YT_COOKIES_B64_set": bool(cookies_env),
+        "cookies_file_exists": cookies_file_exists,
+        "cookies_file_size_bytes": cookies_file_size,
+        "deno_available": subprocess.run(
+            ["which", "deno"], capture_output=True
+        ).returncode
+        == 0,
+    }
